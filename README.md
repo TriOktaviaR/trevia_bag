@@ -1,17 +1,34 @@
-# trevia_bag
+# 👜 Trevia Bag
 
-A new Flutter project.
+Trevia Bag adalah aplikasi penjualan tas fashion wanita berbasis Flutter. Aplikasi ini dibuat untuk memudahkan pengguna dalam melihat, memilih, dan membeli berbagai koleksi tas dengan tampilan yang menarik dan mudah digunakan.
 
-## Getting Started
+## ✨ Fitur
 
-This project is a starting point for a Flutter application.
+* 🏠 Home Page
+* 🔎 Pencarian produk
+* 👜 Koleksi tas
+* 📂 Kategori produk
+* ❤️ Favorit produk
+* 🛒 Keranjang belanja
+* ⭐ Rating produk
+* 💰 Informasi harga
+* 👤 Profil pengguna
+* 🎨 Pilihan tema warna
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ Teknologi yang Digunakan
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+* Flutter
+* Dart
+* Visual Studio Code
+* Git
+* GitHub
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📱 Tentang Aplikasi
+
+Trevia Bag merupakan project Pemrograman Berbasis Platform (PBP) yang dibuat menggunakan Flutter. Aplikasi ini berfokus pada penjualan tas fashion wanita dengan tampilan yang sederhana, menarik, dan mudah digunakan.
+
+## 👩‍💻 Pengembang
+
+**Tri Oktavia Ramadhani**
+
+Project PBP — Universitas Negeri Surabaya
