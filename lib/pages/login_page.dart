@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 
@@ -11,21 +12,25 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController =
       TextEditingController();
-
   final TextEditingController passwordController =
       TextEditingController();
 
   bool passwordVisible = false;
   bool rememberMe = true;
 
-  // =========================
-  // WARNA
-  // =========================
-  static const Color biru = Color(0xFF3B82F6);
-  static const Color biruMuda = Color(0xFF60A5FA);
-  static const Color ungu = Color(0xFF6366F1);
-  static const Color background = Color(0xFFEAF4FF);
-  static const Color textDark = Color(0xFF173B73);
+  Color warnaTema = const Color(0xFF3B82F6);
+
+  final List<Color> daftarWarna = [
+    const Color(0xFF3B82F6),
+    const Color(0xFF8B5CF6),
+    const Color(0xFFEC4899),
+    const Color(0xFF10B981),
+    const Color(0xFFF59E0B),
+    const Color(0xFFEF4444),
+  ];
+
+  Color get warnaKedua =>
+      Color.lerp(warnaTema, Colors.deepPurple, 0.4)!;
 
   @override
   void dispose() {
@@ -54,211 +59,71 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  void pilihWarnaTema() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Pilih Warna Tema'),
+          content: Wrap(
+            spacing: 14,
+            runSpacing: 14,
+            children: daftarWarna.map((warna) {
+              final terpilih = warnaTema == warna;
+
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    warnaTema = warna;
+                  });
+                  Navigator.pop(dialogContext);
+                },
+                borderRadius: BorderRadius.circular(30),
+                child: CircleAvatar(
+                  radius: 23,
+                  backgroundColor: warna,
+                  child: terpilih
+                      ? const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: const Color(0xFFEAF4FF),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // ============================================
-          // TAMPILAN DESKTOP / CHROME
-          // ============================================
           if (constraints.maxWidth >= 800) {
             return Row(
               children: [
-                // =========================
-                // BAGIAN KIRI
-                // =========================
                 Expanded(
                   flex: 5,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFDCEEFF),
-                          Color(0xFFEFF7FF),
-                          Color(0xFFC9E1FF),
-                        ],
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Lingkaran dekorasi
-                        Positioned(
-                          top: -100,
-                          left: -80,
-                          child: _circle(
-                            280,
-                            const Color(0x553B82F6),
-                          ),
-                        ),
-
-                        Positioned(
-                          bottom: -120,
-                          left: 100,
-                          child: _circle(
-                            330,
-                            const Color(0x4460A5FA),
-                          ),
-                        ),
-
-                        Positioned(
-                          top: 100,
-                          right: 30,
-                          child: _circle(
-                            90,
-                            const Color(0x336366F1),
-                          ),
-                        ),
-
-                        // Isi kiri
-                        Center(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(50),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Logo
-                                Container(
-                                  width: 90,
-                                  height: 90,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        biruMuda,
-                                        biru,
-                                        ungu,
-                                      ],
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            biru.withOpacity(0.25),
-                                        blurRadius: 25,
-                                        spreadRadius: 5,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 48,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 35),
-
-                                // Welcome
-                                const Text(
-                                  'Hallo,',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontStyle: FontStyle.italic,
-                                    color: textDark,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 2),
-
-                                const Text(
-                                  'Tri Oktavia! ✨',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.bold,
-                                    color: biru,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 18),
-
-                                const Text(
-                                  'Selamat datang kembali di\naplikasi kami!',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Color(0xFF55729E),
-                                    height: 1.5,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 28),
-
-                                Container(
-                                  width: 70,
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.circular(20),
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        biru,
-                                        ungu,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 25),
-
-                                const Text(
-                                  '"Langkah kecil hari ini,\nbisa menjadi cerita besar\ndi masa depan."',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontStyle: FontStyle.italic,
-                                    color: Color(0xFF607DAD),
-                                    height: 1.5,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 40),
-
-                                // Fitur
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    _feature(
-                                      Icons.rocket_launch,
-                                      'Mudah',
-                                      'Akses cepat',
-                                    ),
-                                    _feature(
-                                      Icons.security,
-                                      'Aman',
-                                      'Data terlindungi',
-                                    ),
-                                    _feature(
-                                      Icons.auto_awesome,
-                                      'Modern',
-                                      'Desain elegan',
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: _bagianSambutan(),
                 ),
-
-                // =========================
-                // BAGIAN KANAN
-                // =========================
                 Expanded(
                   flex: 4,
                   child: Container(
                     color: Colors.white,
                     child: Center(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(45),
-                        child: _loginCard(),
+                        padding: const EdgeInsets.all(35),
+                        child: _kartuLogin(),
                       ),
                     ),
                   ),
@@ -267,9 +132,6 @@ class _LoginPageState extends State<LoginPage> {
             );
           }
 
-          // ============================================
-          // TAMPILAN HP / LAYAR KECIL
-          // ============================================
           return Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -281,8 +143,8 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(25),
-                child: _loginCard(),
+                padding: const EdgeInsets.all(22),
+                child: _kartuLogin(),
               ),
             ),
           );
@@ -291,152 +153,240 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ==================================================
-  // LOGIN CARD
-  // ==================================================
-
-  Widget _loginCard() {
+  Widget _bagianSambutan() {
     return Container(
-      constraints: const BoxConstraints(
-        maxWidth: 520,
-      ),
-      padding: const EdgeInsets.all(38),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.97),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            warnaTema.withOpacity(0.18),
+            const Color(0xFFEFF7FF),
+            warnaTema.withOpacity(0.28),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -100,
+            left: -80,
+            child: _lingkaran(
+              280,
+              warnaTema.withOpacity(0.25),
+            ),
+          ),
+          Positioned(
+            bottom: -120,
+            left: 100,
+            child: _lingkaran(
+              330,
+              warnaTema.withOpacity(0.16),
+            ),
+          ),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(35),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 95,
+                    height: 95,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [warnaTema, warnaKedua],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: warnaTema.withOpacity(0.25),
+                          blurRadius: 25,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.shopping_bag_rounded,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Selamat Datang di',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Color(0xFF173B73),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Trevia Bag! ✨',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.bold,
+                      color: warnaTema,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Temukan tas favoritmu\n'
+                    'untuk melengkapi gayamu!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      height: 1.6,
+                      color: Color(0xFF55729E),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Container(
+                    width: 70,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: warnaTema,
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  const Text(
+                    '"Tampil percaya diri,\n'
+                    'mulai dari pilihan tas\n'
+                    'yang tepat."',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontStyle: FontStyle.italic,
+                      color: Color(0xFF607DAD),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 35),
+                  Row(
+                    children: [
+                      _fitur(
+                        Icons.shopping_bag_outlined,
+                        'Pilihan',
+                        'Tas stylish',
+                      ),
+                      _fitur(
+                        Icons.favorite_outline,
+                        'Menarik',
+                        'Model elegan',
+                      ),
+                      _fitur(
+                        Icons.auto_awesome,
+                        'Modern',
+                        'Tampil trendi',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kartuLogin() {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 520),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.12),
-            blurRadius: 35,
-            spreadRadius: 5,
-            offset: const Offset(0, 15),
+            color: warnaTema.withOpacity(0.10),
+            blurRadius: 30,
+            spreadRadius: 3,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Logo kecil
           Center(
             child: Container(
               width: 82,
               height: 82,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [
-                    biruMuda,
-                    biru,
-                    ungu,
-                  ],
+                gradient: LinearGradient(
+                  colors: [warnaTema, warnaKedua],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: biru.withOpacity(0.2),
-                    blurRadius: 20,
-                  ),
-                ],
               ),
               child: const Icon(
-                Icons.person,
+                Icons.shopping_bag_rounded,
                 color: Colors.white,
-                size: 45,
+                size: 42,
               ),
             ),
           ),
-
-          const SizedBox(height: 25),
-
+          const SizedBox(height: 24),
           const Center(
             child: Text(
-              'Masuk ke Akun Anda',
+              'Masuk ke Trevia Bag',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 27,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Color(0xFF173B73),
               ),
             ),
           ),
-
           const SizedBox(height: 10),
-
           const Center(
             child: Text(
-              'Silakan masukkan username dan password\nuntuk melanjutkan',
+              'Silakan masukkan username dan password\n'
+              'untuk melanjutkan',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Color(0xFF7185A5),
                 height: 1.5,
+                color: Color(0xFF7185A5),
               ),
             ),
           ),
-
-          const SizedBox(height: 35),
-
-          // USERNAME
+          const SizedBox(height: 30),
           const Text(
             'Username',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: textDark,
+              color: Color(0xFF173B73),
             ),
           ),
-
           const SizedBox(height: 9),
-
           TextField(
             controller: usernameController,
-            decoration: InputDecoration(
-              hintText: 'Masukkan username kamu',
-              prefixIcon: const Icon(
-                Icons.person_outline,
-                color: biru,
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF4F8FF),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(17),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(17),
-                borderSide: const BorderSide(
-                  color: Color(0xFFD6E6FF),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(17),
-                borderSide: const BorderSide(
-                  color: biru,
-                  width: 2,
-                ),
-              ),
+            decoration: _dekorasiInput(
+              'Masukkan username kamu',
+              Icons.person_outline,
             ),
           ),
-
-          const SizedBox(height: 22),
-
-          // PASSWORD
+          const SizedBox(height: 20),
           const Text(
             'Password',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: textDark,
+              color: Color(0xFF173B73),
             ),
           ),
-
           const SizedBox(height: 9),
-
           TextField(
             controller: passwordController,
             obscureText: !passwordVisible,
-            decoration: InputDecoration(
-              hintText: 'Masukkan password kamu',
-              prefixIcon: const Icon(
-                Icons.lock_outline,
-                color: biru,
-              ),
+            onSubmitted: (_) => login(),
+            decoration: _dekorasiInput(
+              'Masukkan password kamu',
+              Icons.lock_outline,
+            ).copyWith(
               suffixIcon: IconButton(
                 onPressed: () {
                   setState(() {
@@ -447,88 +397,62 @@ class _LoginPageState extends State<LoginPage> {
                   passwordVisible
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: Colors.grey,
-                ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF4F8FF),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(17),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(17),
-                borderSide: const BorderSide(
-                  color: Color(0xFFD6E6FF),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(17),
-                borderSide: const BorderSide(
-                  color: biru,
-                  width: 2,
                 ),
               ),
             ),
           ),
-
-          const SizedBox(height: 15),
-
-          // INGAT SAYA
+          const SizedBox(height: 12),
           Row(
             children: [
               Checkbox(
                 value: rememberMe,
-                activeColor: biru,
+                activeColor: warnaTema,
                 onChanged: (value) {
                   setState(() {
                     rememberMe = value ?? false;
                   });
                 },
               ),
-              const Text(
-                'Ingat saya',
-                style: TextStyle(
-                  color: Color(0xFF61799E),
+              const Flexible(
+                child: Text(
+                  'Ingat saya',
+                  style: TextStyle(
+                    color: Color(0xFF61799E),
+                  ),
                 ),
               ),
               const Spacer(),
               TextButton(
-                onPressed: () {},
-                child: const Text(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Silakan hubungi pengelola untuk '
+                        'bantuan password.',
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
                   'Lupa password?',
                   style: TextStyle(
-                    color: biru,
+                    color: warnaTema,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 15),
-
-          // TOMBOL MASUK
           SizedBox(
             width: double.infinity,
-            height: 58,
+            height: 56,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    biruMuda,
-                    biru,
-                    ungu,
-                  ],
+                gradient: LinearGradient(
+                  colors: [warnaTema, warnaKedua],
                 ),
                 borderRadius: BorderRadius.circular(17),
-                boxShadow: [
-                  BoxShadow(
-                    color: biru.withOpacity(0.28),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
               ),
               child: ElevatedButton(
                 onPressed: login,
@@ -542,15 +466,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.login,
-                      color: Colors.white,
-                    ),
+                    Icon(Icons.login, color: Colors.white),
                     SizedBox(width: 12),
                     Text(
                       'MASUK',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -560,21 +481,18 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-
-          const SizedBox(height: 28),
-
-          // GANTI TEMA
+          const SizedBox(height: 22),
           Center(
             child: TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(
+              onPressed: pilihWarnaTema,
+              icon: Icon(
                 Icons.palette_outlined,
-                color: biru,
+                color: warnaTema,
               ),
-              label: const Text(
+              label: Text(
                 'Ganti Warna Tema',
                 style: TextStyle(
-                  color: biru,
+                  color: warnaTema,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -585,62 +503,77 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ==================================================
-  // CIRCLE DEKORASI
-  // ==================================================
-
-  Widget _circle(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
+  InputDecoration _dekorasiInput(
+    String hint,
+    IconData ikon,
+  ) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(ikon, color: warnaTema),
+      filled: true,
+      fillColor: const Color(0xFFF4F8FF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(17),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(17),
+        borderSide: const BorderSide(
+          color: Color(0xFFD6E6FF),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(17),
+        borderSide: BorderSide(
+          color: warnaTema,
+          width: 2,
+        ),
       ),
     );
   }
 
-  // ==================================================
-  // FITUR
-  // ==================================================
+  Widget _lingkaran(double ukuran, Color warna) {
+    return Container(
+      width: ukuran,
+      height: ukuran,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: warna,
+      ),
+    );
+  }
 
-  Widget _feature(
-    IconData icon,
-    String title,
-    String subtitle,
+  Widget _fitur(
+    IconData ikon,
+    String judul,
+    String subjudul,
   ) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        padding: const EdgeInsets.all(15),
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.white,
-          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: biru,
-              size: 30,
-            ),
+            Icon(ikon, color: warnaTema, size: 28),
             const SizedBox(height: 8),
             Text(
-              title,
+              judul,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Color(0xFF173B73),
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
-              subtitle,
+              subjudul,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: Color(0xFF7185A5),
               ),
             ),
