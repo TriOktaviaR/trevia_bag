@@ -3,6 +3,44 @@ import '../model/product.dart';
 import '../model/products.dart';
 import 'login_page.dart';
 
+
+// Data pesanan disimpan selama aplikasi berjalan.
+class OrderRecord {
+  final String id;
+  final DateTime tanggal;
+  final Map<Product, int> produk;
+  final String nama;
+  final String telepon;
+  final String alamat;
+  final String kurir;
+  final String pembayaran;
+  final String catatan;
+  final String voucher;
+  final double subtotal;
+  final double ongkir;
+  final double diskon;
+  final double total;
+  String status;
+
+  OrderRecord({
+    required this.id,
+    required this.tanggal,
+    required this.produk,
+    required this.nama,
+    required this.telepon,
+    required this.alamat,
+    required this.kurir,
+    required this.pembayaran,
+    required this.catatan,
+    required this.voucher,
+    required this.subtotal,
+    required this.ongkir,
+    required this.diskon,
+    required this.total,
+    this.status = 'Pesanan dikonfirmasi',
+  });
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -20,6 +58,7 @@ class _HomePageState extends State<HomePage> {
   String selectedCategory = 'Semua';
   final Set<int> favoriteProducts = {};
   final List<Product> cartProducts = [];
+  final List<OrderRecord> riwayatPesanan = [];
 
   final List<List<Color>> daftarWarna = [
     [const Color(0xff536DFE), const Color(0xff7C4DFF)],
@@ -93,6 +132,9 @@ class _HomePageState extends State<HomePage> {
           warnaUtama: warnaUtama,
           warnaKedua: warnaKedua,
           onCartChanged: () => setState(() {}),
+          onOrderCreated: (pesanan) {
+            setState(() => riwayatPesanan.insert(0, pesanan));
+          },
         ),
       ),
     ).then((_) => setState(() {}));
@@ -102,7 +144,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF6F7FB),
-      body: selectedIndex == 0 ? _homePage() : _aboutMe(),
+      body: selectedIndex == 0
+          ? _homePage()
+          : selectedIndex == 1
+              ? _halamanRiwayat()
+              : _aboutMe(),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
@@ -114,6 +160,11 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
+            label: 'Pesanan',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -132,10 +183,16 @@ class _HomePageState extends State<HomePage> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(22, 20, 22, 25),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [warnaUtama, warnaKedua],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              // Foto background pink hanya untuk bagian header Home.
+              // Simpan gambar dengan nama assets/background_pink.png.
+              color: const Color(0xFFF8C8DC),
+              image: const DecorationImage(
+                image: AssetImage('assets/background_pink.png'),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Color(0x33EC407A),
+                  BlendMode.srcOver,
+                ),
               ),
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(30),
@@ -656,6 +713,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _halamanRiwayat() {
+    return OrderHistoryPage(
+      pesanan: riwayatPesanan,
+      warnaUtama: warnaUtama,
+      warnaKedua: warnaKedua,
+      onStatusChanged: () => setState(() {}),
+    );
+  }
+
   Widget _aboutMe() {
     return SingleChildScrollView(
       child: Column(
@@ -1080,6 +1146,7 @@ class CartPage extends StatefulWidget {
   final Color warnaUtama;
   final Color warnaKedua;
   final VoidCallback onCartChanged;
+  final ValueChanged<OrderRecord> onOrderCreated;
 
   const CartPage({
     super.key,
@@ -1087,6 +1154,7 @@ class CartPage extends StatefulWidget {
     required this.warnaUtama,
     required this.warnaKedua,
     required this.onCartChanged,
+    required this.onOrderCreated,
   });
 
   @override
@@ -1146,58 +1214,24 @@ class _CartPageState extends State<CartPage> {
 
   void checkout() {
     if (jumlahProduk.isEmpty) return;
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+    final itemPesanan = Map<Product, int>.from(jumlahProduk);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CheckoutPage(
+          produk: itemPesanan,
+          subtotal: total,
+          warnaUtama: widget.warnaUtama,
+          warnaKedua: widget.warnaKedua,
+          onOrderCreated: (pesanan) {
+            widget.onOrderCreated(pesanan);
+            setState(() {
+              jumlahProduk.clear();
+              widget.cartProducts.clear();
+            });
+            widget.onCartChanged();
+          },
         ),
-        title: const Text('Konfirmasi Checkout'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Jumlah barang: $totalBarang'),
-            const SizedBox(height: 10),
-            const Text('Total pembayaran:'),
-            const SizedBox(height: 5),
-            Text(
-              formatRupiah(total),
-              style: TextStyle(
-                color: widget.warnaUtama,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              setState(() {
-                jumlahProduk.clear();
-                widget.cartProducts.clear();
-              });
-              widget.onCartChanged();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Checkout berhasil! 🎉'),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: widget.warnaUtama,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Checkout'),
-          ),
-        ],
       ),
     );
   }
@@ -1451,4 +1485,557 @@ class _CartPageState extends State<CartPage> {
       ),
     );
   }
+}
+
+// =======================================================
+// CHECKOUT LENGKAP
+// =======================================================
+class CheckoutPage extends StatefulWidget {
+  final Map<Product, int> produk;
+  final double subtotal;
+  final Color warnaUtama;
+  final Color warnaKedua;
+  final ValueChanged<OrderRecord> onOrderCreated;
+
+  const CheckoutPage({
+    super.key,
+    required this.produk,
+    required this.subtotal,
+    required this.warnaUtama,
+    required this.warnaKedua,
+    required this.onOrderCreated,
+  });
+
+  @override
+  State<CheckoutPage> createState() => _CheckoutPageState();
+}
+
+class _CheckoutPageState extends State<CheckoutPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nama = TextEditingController();
+  final _telepon = TextEditingController();
+  final _alamat = TextEditingController();
+  final _catatan = TextEditingController();
+  final _voucher = TextEditingController();
+
+  String kurir = 'Reguler (Rp10.000)';
+  String pembayaran = 'Transfer Bank';
+  bool voucherValid = false;
+  bool sedangMemproses = false;
+
+  double get ongkir => kurir == 'Express (Rp20.000)' ? 20000 : 10000;
+  double get diskon => voucherValid ? widget.subtotal * 0.10 : 0;
+  double get total => (widget.subtotal + ongkir - diskon)
+      .clamp(0, double.infinity).toDouble();
+
+  String formatRupiah(num angka) {
+    final value = angka.round().toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < value.length; i++) {
+      if (i > 0 && (value.length - i) % 3 == 0) buffer.write('.');
+      buffer.write(value[i]);
+    }
+    return 'Rp ${buffer.toString()}';
+  }
+
+  @override
+  void dispose() {
+    _nama.dispose();
+    _telepon.dispose();
+    _alamat.dispose();
+    _catatan.dispose();
+    _voucher.dispose();
+    super.dispose();
+  }
+
+  void terapkanVoucher() {
+    setState(() {
+      voucherValid = _voucher.text.trim().toUpperCase() == 'TREVIA10';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(voucherValid
+            ? 'Voucher TREVIA10 berhasil! Diskon 10%.'
+            : 'Voucher tidak valid. Coba kode TREVIA10.'),
+      ),
+    );
+  }
+
+  void buatPesanan() {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => sedangMemproses = true);
+    final pesanan = OrderRecord(
+      id: 'TV${DateTime.now().millisecondsSinceEpoch}',
+      tanggal: DateTime.now(),
+      produk: Map<Product, int>.from(widget.produk),
+      nama: _nama.text.trim(),
+      telepon: _telepon.text.trim(),
+      alamat: _alamat.text.trim(),
+      kurir: kurir,
+      pembayaran: pembayaran,
+      catatan: _catatan.text.trim().isEmpty ? '-' : _catatan.text.trim(),
+      voucher: voucherValid ? 'TREVIA10' : '-', 
+      subtotal: widget.subtotal,
+      ongkir: ongkir,
+      diskon: diskon,
+      total: total,
+    );
+    widget.onOrderCreated(pesanan);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        icon: Icon(Icons.check_circle, color: widget.warnaUtama, size: 52),
+        title: const Text('Pesanan berhasil dibuat!'),
+        content: const Text(
+          'Pesananmu tersimpan di Riwayat Pesanan. Kamu dapat melihat detail atau membatalkannya dari halaman Pesanan.',
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.warnaUtama,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.pop(context);
+            },
+            child: const Text('Lihat Keranjang'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xffF6F7FB),
+      appBar: AppBar(
+        title: const Text('Checkout Pesanan'),
+        backgroundColor: widget.warnaUtama,
+        foregroundColor: Colors.white,
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _judulBagian('Data Pembeli', Icons.person_outline),
+            _input(_nama, 'Nama lengkap', Icons.person, 'Masukkan nama lengkap'),
+            const SizedBox(height: 12),
+            _input(_telepon, 'Nomor telepon', Icons.phone, 'Masukkan nomor telepon',
+                keyboardType: TextInputType.phone),
+            const SizedBox(height: 12),
+            _input(_alamat, 'Alamat lengkap', Icons.location_on,
+                'Nama jalan, nomor rumah, desa, kecamatan, kota/kabupaten',
+                maxLines: 3),
+            const SizedBox(height: 12),
+            _input(_catatan, 'Catatan (opsional)', Icons.note_alt_outlined,
+                'Contoh: rumah pagar putih', requiredField: false),
+            const SizedBox(height: 20),
+            _judulBagian('Pengiriman', Icons.local_shipping_outlined),
+            _dropdown<String>(
+              value: kurir,
+              label: 'Pilih kurir',
+              items: const ['Reguler (Rp10.000)', 'Express (Rp20.000)'],
+              onChanged: (v) => setState(() => kurir = v!),
+            ),
+            const SizedBox(height: 20),
+            _judulBagian('Metode Pembayaran', Icons.account_balance_wallet_outlined),
+            _dropdown<String>(
+              value: pembayaran,
+              label: 'Metode pembayaran',
+              items: const [
+                'Transfer Bank',
+                'COD (Bayar di Tempat)',
+                'E-Wallet',
+                'Virtual Account',
+              ],
+              onChanged: (v) => setState(() => pembayaran = v!),
+            ),
+            const SizedBox(height: 20),
+            _judulBagian('Voucher Diskon', Icons.local_offer_outlined),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _voucher,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: InputDecoration(
+                      hintText: 'Masukkan kode voucher',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: terapkanVoucher,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.warnaUtama,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+                  ),
+                  child: const Text('Pakai'),
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 7),
+              child: Text('Gunakan TREVIA10 untuk diskon 10%.',
+                  style: TextStyle(color: Colors.grey, fontSize: 12)),
+            ),
+            const SizedBox(height: 20),
+            _judulBagian('Ringkasan Pembayaran', Icons.receipt_long),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  ...widget.produk.entries.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: Text('${e.key.name} × ${e.value}')),
+                        Text(formatRupiah(_harga(e.key.price) * e.value)),
+                      ],
+                    ),
+                  )),
+                  const Divider(height: 22),
+                  _barisHarga('Subtotal', widget.subtotal),
+                  const SizedBox(height: 8),
+                  _barisHarga('Ongkos kirim', ongkir),
+                  const SizedBox(height: 8),
+                  _barisHarga('Diskon voucher', -diskon,
+                      warna: voucherValid ? Colors.green : null),
+                  const Divider(height: 22),
+                  _barisHarga('Total pembayaran', total,
+                      tebal: true, warna: widget.warnaUtama),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: sedangMemproses ? null : buatPesanan,
+                icon: const Icon(Icons.shopping_bag_outlined),
+                label: const Text('BUAT PESANAN',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.warnaUtama,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _harga(String harga) => double.tryParse(
+      harga.replaceAll('Rp', '').replaceAll('.', '').replaceAll(',', '').trim()) ?? 0;
+
+  Widget _judulBagian(String judul, IconData icon) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(children: [
+      Icon(icon, color: widget.warnaUtama),
+      const SizedBox(width: 8),
+      Text(judul, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+    ]),
+  );
+
+  Widget _input(TextEditingController controller, String label, IconData icon,
+      String hint, {int maxLines = 1, TextInputType? keyboardType, bool requiredField = true}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      validator: (value) {
+        if (requiredField && (value == null || value.trim().isEmpty)) {
+          return '$label wajib diisi';
+        }
+        if (label == 'Nomor telepon' && value != null &&
+            value.trim().isNotEmpty && value.trim().length < 8) {
+          return 'Nomor telepon minimal 8 digit';
+        }
+        return null;
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _dropdown<T>({
+    required T value,
+    required String label,
+    required List<T> items,
+    required ValueChanged<T?> onChanged,
+  }) => DropdownButtonFormField<T>(
+    value: value,
+    decoration: InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    ),
+    items: items.map((item) => DropdownMenuItem<T>(
+      value: item,
+      child: Text(item.toString()),
+    )).toList(),
+    onChanged: onChanged,
+  );
+
+  Widget _barisHarga(String label, double nilai, {bool tebal = false, Color? warna}) =>
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(label, style: TextStyle(
+              fontWeight: tebal ? FontWeight.bold : FontWeight.normal,
+              color: warna,
+            )),
+          ),
+          Text('${nilai < 0 ? '- ' : ''}${formatRupiah(nilai.abs())}',
+            style: TextStyle(
+              fontWeight: tebal ? FontWeight.bold : FontWeight.normal,
+              color: warna,
+            )),
+        ],
+      );
+}
+
+// =======================================================
+// RIWAYAT PESANAN + PEMBATALAN
+// =======================================================
+class OrderHistoryPage extends StatefulWidget {
+  final List<OrderRecord> pesanan;
+  final Color warnaUtama;
+  final Color warnaKedua;
+  final VoidCallback onStatusChanged;
+
+  const OrderHistoryPage({
+    super.key,
+    required this.pesanan,
+    required this.warnaUtama,
+    required this.warnaKedua,
+    required this.onStatusChanged,
+  });
+
+  @override
+  State<OrderHistoryPage> createState() => _OrderHistoryPageState();
+}
+
+class _OrderHistoryPageState extends State<OrderHistoryPage> {
+  String formatRupiah(num angka) {
+    final value = angka.round().toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < value.length; i++) {
+      if (i > 0 && (value.length - i) % 3 == 0) buffer.write('.');
+      buffer.write(value[i]);
+    }
+    return 'Rp ${buffer.toString()}';
+  }
+
+  String formatTanggal(DateTime tanggal) {
+    final t = tanggal;
+    return '${t.day.toString().padLeft(2, '0')}/${t.month.toString().padLeft(2, '0')}/${t.year} '
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  void konfirmasiPembatalan(OrderRecord pesanan) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Batalkan Pesanan?'),
+        content: Text('Pesanan ${pesanan.id} akan dibatalkan. Pesanan tetap tersimpan di riwayat. Lanjutkan?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Tidak'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              setState(() => pesanan.status = 'Pesanan dibatalkan');
+              widget.onStatusChanged();
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Pesanan berhasil dibatalkan. Riwayat tetap tersimpan.')),
+              );
+            },
+            child: const Text('Ya, Batalkan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xffF6F7FB),
+      appBar: AppBar(
+        title: const Text('Riwayat Pesanan'),
+        backgroundColor: widget.warnaUtama,
+        foregroundColor: Colors.white,
+      ),
+      body: widget.pesanan.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.receipt_long_outlined, size: 76,
+                      color: widget.warnaUtama.withOpacity(0.4)),
+                  const SizedBox(height: 12),
+                  const Text('Belum ada riwayat pesanan',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  const Text('Pesanan yang kamu buat akan tampil di sini.',
+                      style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(14),
+              itemCount: widget.pesanan.length,
+              itemBuilder: (context, index) {
+                final p = widget.pesanan[index];
+                final dibatalkan = p.status == 'Pesanan dibatalkan';
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  elevation: 2,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Pesanan ${p.id}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: dibatalkan ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(p.status, style: TextStyle(
+                                color: dibatalkan ? Colors.red : Colors.green.shade700,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              )),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(formatTanggal(p.tanggal),
+                            style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Divider(height: 22),
+                        ...p.produk.entries.map((e) => Padding(
+                          padding: const EdgeInsets.only(bottom: 7),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: Text('${e.key.name} × ${e.value}')),
+                              Text(formatRupiah(_harga(e.key.price) * e.value)),
+                            ],
+                          ),
+                        )),
+                        const Divider(height: 18),
+                        _baris('Nama pembeli', p.nama),
+                        _baris('Telepon', p.telepon),
+                        _baris('Alamat', p.alamat),
+                        _baris('Kurir', p.kurir),
+                        _baris('Pembayaran', p.pembayaran),
+                        _baris('Catatan', p.catatan),
+                        _baris('Voucher', p.voucher),
+                        _baris('Subtotal', formatRupiah(p.subtotal)),
+                        _baris('Ongkir', formatRupiah(p.ongkir)),
+                        _baris('Diskon', '- ${formatRupiah(p.diskon)}'),
+                        const Divider(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(formatRupiah(p.total), style: TextStyle(
+                              color: widget.warnaUtama,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                            )),
+                          ],
+                        ),
+                        if (!dibatalkan) ...[
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => konfirmasiPembatalan(p),
+                              icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                              label: const Text('Batalkan Pesanan',
+                                  style: TextStyle(color: Colors.red)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.redAccent),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  double _harga(String harga) => double.tryParse(
+      harga.replaceAll('Rp', '').replaceAll('.', '').replaceAll(',', '').trim()) ?? 0;
+
+  Widget _baris(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 7),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 105, child: Text(label,
+            style: const TextStyle(color: Colors.grey, fontSize: 12))),
+        const Text(': '),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
+      ],
+    ),
+  );
 }
