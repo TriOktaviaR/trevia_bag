@@ -123,22 +123,34 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void bukaKeranjang() {
-    flutter runfgit remote -vflutter pub get(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CartPage(
-          cartProducts: cartProducts,
-          warnaUtama: warnaUtama,
-          warnaKedua: warnaKedua,
-          onCartChanged: () => setState(() {}),
-          onOrderCreated: (pesanan) {
-            setState(() => riwayatPesanan.insert(0, pesanan));
-          },
-        ),
+ void bukaKeranjang() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CartPage(
+        cartProducts: cartProducts,
+        warnaUtama: warnaUtama,
+        warnaKedua: warnaKedua,
+        onCartChanged: () {
+          if (mounted) {
+            setState(() {});
+          }
+        },
+        onOrderCreated: (pesanan) {
+          if (mounted) {
+            setState(() {
+              riwayatPesanan.insert(0, pesanan);
+            });
+          }
+        },
       ),
-    ).then((_) => setState(() {}));
-  }
+    ),
+  ).then((_) {
+    if (mounted) {
+      setState(() {});
+    }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
