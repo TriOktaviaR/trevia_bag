@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void bukaKeranjang() {
-    flutter runfgit remote -v(
+    flutter runfgit remote -vflutter pub get(
       context,
       MaterialPageRoute(
         builder: (context) => CartPage(
