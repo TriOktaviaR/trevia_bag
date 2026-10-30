@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void bukaKeranjang() {
-    Navigator.push(
+    flutter runf(
       context,
       MaterialPageRoute(
         builder: (context) => CartPage(
